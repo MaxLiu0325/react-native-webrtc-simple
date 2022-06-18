@@ -50,8 +50,6 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
 
     WebrtcSimple.listenings.callEvents((type, userData: any) => {
 
-      console.log(type, userData);
-
       if (type !== CallEvents.message) {
         setType(type);
       }
