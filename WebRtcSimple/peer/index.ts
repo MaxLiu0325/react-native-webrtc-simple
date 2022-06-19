@@ -90,6 +90,7 @@ const listeningRemoteCall = (sessionId: string, myStream: any) => {
         if (data?.peerConn) {
           data.peerConn.map((item: any) => {
             if (item) {
+              item.send({ type: CallEvents.end });
               item.close();
             }
           });
