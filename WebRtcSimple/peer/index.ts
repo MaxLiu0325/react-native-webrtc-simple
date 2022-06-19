@@ -35,6 +35,9 @@ const listeningRemoteCall = (sessionId: string, myStream: any) => {
           if (data.type === CallEvents.start) {
             RECEIVED_CALL.next({ peerConn, userData: data.userData });
           }
+          if (data.type === CallEvents.end) {
+            END_CALL.next({ peerConn });
+          }
           // events send message
           if (data.type === CallEvents.message) {
             MESSAGE.next({ sessionId: data.sessionId, message: data.message });
@@ -150,6 +153,9 @@ const callToUser = (sessionId: string, receiverId: string, userData: any) => {
         // the other person accept call
         if (data.type === CallEvents.accept) {
           ACCEPT_CALL.next({ peerConn, sessionId: data.sessionId });
+        }
+        if (data.type === CallEvents.end) {
+          END_CALL.next({ peerConn });
         }
       });
     });
