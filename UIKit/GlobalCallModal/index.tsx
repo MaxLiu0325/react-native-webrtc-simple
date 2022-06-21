@@ -11,6 +11,8 @@ import { CallEvents } from '../../WebRtcSimple/contains';
 import { Timer } from './../index';
 import { styles } from './styles';
 
+import InCallManager from 'react-native-incall-manager';
+
 let interval: any = null;
 const ringtime = 20;
 
@@ -85,6 +87,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
       if (type === CallEvents.accept) {
         clearInterval(interval);
         WebrtcSimple.events.vibration.cancel();
+        InCallManager.start({ media: 'video' });
       }
 
       if (type === CallEvents.end) {
@@ -93,6 +96,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
         setVisible(false);
         setAudioEnable(true);
         setVideoEnable(true);
+        InCallManager.stop();
       }
 
       if (type === CallEvents.message) {
