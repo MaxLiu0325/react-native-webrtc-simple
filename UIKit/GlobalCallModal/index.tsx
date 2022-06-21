@@ -75,6 +75,8 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
             setName(userData.sender_name);
             setAvatar(userData.sender_avatar);
           }
+
+          InCallManager.startRingtone('_BUNDLE_');
         } else {
           if (userData?.receiver_name && userData?.receiver_avatar) {
             setName(userData.receiver_name);
@@ -87,6 +89,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
       if (type === CallEvents.accept) {
         clearInterval(interval);
         WebrtcSimple.events.vibration.cancel();
+        InCallManager.stopRingtone();
         InCallManager.start({ media: 'video' });
       }
 
