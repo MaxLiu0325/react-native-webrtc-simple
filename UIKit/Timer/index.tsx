@@ -59,7 +59,7 @@ const TimerComponent: React.FC<Props> = (props) => {
 
   return (
     <View style={[styles.container, props.style]} key={key}>
-      <Text style={[styles.text, props.textStyle]}>{`${hours}:${minute.toString().length === 1 ? '0' : ''}${minute}:${second.toString().length === 1 ? '0' : ''
+      <Text style={[styles.text, props.textStyle]}>{`${hours.toString().length === 1 ? '0' : ''}:${minute.toString().length === 1 ? '0' : ''}${minute}:${second.toString().length === 1 ? '0' : ''
         }${second}`}</Text>
     </View>
   );
