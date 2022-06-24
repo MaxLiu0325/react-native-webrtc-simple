@@ -1,17 +1,19 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useState } from "react";
 import {
   Image,
-  Modal, StatusBar, Text,
+  Modal,
+  StatusBar,
+  Text,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { RTCView } from 'react-native-webrtc';
-import WebrtcSimple from '../../index';
-import { CallEvents } from '../../WebRtcSimple/contains';
-import { Timer } from './../index';
-import { styles } from './styles';
+  View,
+} from "react-native";
+import { RTCView } from "react-native-webrtc";
+import WebrtcSimple from "../../index";
+import { CallEvents } from "../../WebRtcSimple/contains";
+import { Timer } from "./../index";
+import { styles } from "./styles";
 
-import InCallManager from 'react-native-incall-manager';
+import InCallManager from "react-native-incall-manager";
 
 let interval: any = null;
 const ringtime = 20;
@@ -27,19 +29,21 @@ export interface Props {
   name?: string;
 }
 
-StatusBar.setBarStyle('dark-content');
+StatusBar.setBarStyle("dark-content");
 const GlobalCallUI = React.forwardRef((props, ref) => {
-
   const [visible, setVisible] = useState<boolean>(false);
   const stream = WebrtcSimple.getLocalStream();
   const [remoteStream, setRemoteStream] = useState<any>(null);
-  const [type, setType] = useState<string>('');
+  const [type, setType] = useState<string>("");
   const [audioEnable, setAudioEnable] = useState<boolean>(true);
   const [videoEnabled, setVideoEnable] = useState<boolean>(true);
-  const [cameraType, setCameraType] = useState<'front' | 'end'>('front');
-  const [remoteCameraType, setRemoteCameraType] = useState<'front' | 'end'>('front');
-  const [name, setName] = useState<string>('');
-  const [avatar, setAvatar] = useState<string>('');
+  const [cameraType, setCameraType] = useState<"front" | "end">("front");
+  const [remoteCameraType, setRemoteCameraType] = useState<"front" | "end">(
+    "front"
+  );
+  const [name, setName] = useState<string>("");
+  const [avatar, setAvatar] = useState<string>("");
+  const [callType, setCallType] = useState<string>("");
 
   useImperativeHandle(ref, () => {
     return { call };
@@ -51,14 +55,38 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
     });
 
     WebrtcSimple.listenings.callEvents((type, userData: any) => {
+      switch (type) {
+        case CallEvents.received:
+          InCallManager.startRingtone("_BUNDLE_");
+          break;
+        case CallEvents.accept:
+          InCallManager.stopRingtone();
+          InCallManager.start({ media: "video" });
+          break;
+        case CallEvents.end:
+          InCallManager.stop();
+          break;
+        default:
+          break;
+      }
 
       if (type !== CallEvents.message) {
         setType(type);
       }
 
       if (type === CallEvents.received || type === CallEvents.start) {
-        video(true);
+        setCallType(userData.type);
+
+        // video(true);
         audio(true);
+
+        setTimeout(() => {
+          if (userData.type === "voice") {
+            video(false);
+            setVideoEnable(false);
+          }
+        }, 0);
+
         let time = ringtime;
         interval = setInterval(() => {
           time = time - 1;
@@ -75,8 +103,6 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
             setName(userData.sender_name);
             setAvatar(userData.sender_avatar);
           }
-
-          InCallManager.startRingtone('_BUNDLE_');
         } else {
           if (userData?.receiver_name && userData?.receiver_avatar) {
             setName(userData.receiver_name);
@@ -89,8 +115,6 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
       if (type === CallEvents.accept) {
         clearInterval(interval);
         WebrtcSimple.events.vibration.cancel();
-        InCallManager.stopRingtone();
-        InCallManager.start({ media: 'video' });
       }
 
       if (type === CallEvents.end) {
@@ -99,11 +123,10 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
         setVisible(false);
         setAudioEnable(true);
         setVideoEnable(true);
-        InCallManager.stop();
       }
 
       if (type === CallEvents.message) {
-        if (userData?.message?.type === 'SWITCH_CAMERA') {
+        if (userData?.message?.type === "SWITCH_CAMERA") {
           setRemoteCameraType(userData?.message?.value);
         }
       }
@@ -123,12 +146,12 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
   };
 
   const switchCamera = () => {
-    if (cameraType === 'front') {
-      setCameraType('end');
-      WebrtcSimple.events.message({ type: 'SWITCH_CAMERA', value: 'end' });
+    if (cameraType === "front") {
+      setCameraType("end");
+      WebrtcSimple.events.message({ type: "SWITCH_CAMERA", value: "end" });
     } else {
-      setCameraType('front');
-      WebrtcSimple.events.message({ type: 'SWITCH_CAMERA', value: 'front' });
+      setCameraType("front");
+      WebrtcSimple.events.message({ type: "SWITCH_CAMERA", value: "front" });
     }
     WebrtcSimple.events.switchCamera();
   };
@@ -142,16 +165,25 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
   };
 
   const renderIcon = (icon: any, color: string, onPress: () => void) => {
-    return (<View>
-      <TouchableOpacity
-        style={[styles.btnCall, { backgroundColor: color }]}
-        onPress={() => {
-          onPress();
-        }}>
-        <Image style={[styles.icon, { tintColor: color === 'white' ? 'black' : 'white' }]} source={icon} />
-      </TouchableOpacity>
-    </View>)
-  }
+    return (
+      <View>
+        <TouchableOpacity
+          style={[styles.btnCall, { backgroundColor: color }]}
+          onPress={() => {
+            onPress();
+          }}
+        >
+          <Image
+            style={[
+              styles.icon,
+              { tintColor: color === "white" ? "black" : "white" },
+            ]}
+            source={icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   if (!visible) {
     return null;
@@ -163,35 +195,70 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
       transparent
       onRequestClose={() => {
         setVisible(false);
-      }}>
+      }}
+    >
       <View style={styles.modalCall}>
-        {name.length > 0 && type !== CallEvents.accept && <Text style={styles.name}>{name}</Text>}
+        {name.length > 0 && type !== CallEvents.accept && (
+          <Text style={styles.name}>{name}</Text>
+        )}
         {avatar.length > 0 && type !== CallEvents.accept && (
           <Image style={styles.avatar} source={{ uri: avatar }} />
         )}
-        {(type === CallEvents.start || type === CallEvents.received) && <Timer style={styles.timer} textStyle={styles.textTimer} start />}
+        {(type === CallEvents.start || type === CallEvents.received) && (
+          <Timer style={styles.timer} textStyle={styles.textTimer} start />
+        )}
         {type === CallEvents.accept && remoteStream && (
           <View style={{ flex: 1 }}>
-            {stream && (
+            {type === CallEvents.accept && (
+              <View
+                style={{
+                  alignItems: "center",
+                  position: "absolute",
+                  top: 40,
+                  left: 0,
+                  right: 0,
+                  minHeight: 20,
+                  zIndex: 9,
+                }}
+              >
+                <Timer
+                  style={styles.timer2}
+                  textStyle={styles.textTimer2}
+                  start
+                />
+              </View>
+            )}
+            {stream && callType === "video" && (
               <View style={styles.boxMyStream}>
-                <RTCView mirror={cameraType === 'front' ? true : false} streamURL={stream.toURL()} zOrder={999} style={styles.myStream} objectFit="cover" />
-                {type === CallEvents.accept &&
-                  <Timer
-                    style={styles.timer2}
-                    textStyle={styles.textTimer2} start
-                  />}
+                <RTCView
+                  mirror={cameraType === "front" ? true : false}
+                  streamURL={stream.toURL()}
+                  zOrder={999}
+                  style={styles.myStream}
+                  objectFit="cover"
+                />
                 <TouchableOpacity onPress={() => switchCamera()}>
-                  <Image style={styles.iconCamera} source={require('./icon/camera.png')} />
+                  <Image
+                    style={styles.iconCamera}
+                    source={require("./icon/camera.png")}
+                  />
                 </TouchableOpacity>
               </View>
             )}
-
-            <RTCView mirror={remoteCameraType === 'front' ? true : false} streamURL={remoteStream.toURL()} zOrder={99} style={styles.stream} objectFit="cover" />
+            {callType === "video" && (
+              <RTCView
+                mirror={remoteCameraType === "front" ? true : false}
+                streamURL={remoteStream.toURL()}
+                zOrder={99}
+                style={styles.stream}
+                objectFit="cover"
+              />
+            )}
           </View>
         )}
         {type === CallEvents.start && (
           <View style={styles.manageCall}>
-            {renderIcon(require('./icon/endcall.png'), 'red', () => {
+            {renderIcon(require("./icon/endcall.png"), "red", () => {
               setVisible(false);
               endCall();
             })}
@@ -199,10 +266,10 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
         )}
         {type === CallEvents.received && (
           <View style={styles.manageCall}>
-            {renderIcon(require('./icon/call.png'), 'green', () => {
+            {renderIcon(require("./icon/call.png"), "green", () => {
               acceptCall();
             })}
-            {renderIcon(require('./icon/endcall.png'), 'red', () => {
+            {renderIcon(require("./icon/endcall.png"), "red", () => {
               setVisible(false);
               endCall();
             })}
@@ -210,21 +277,29 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
         )}
         {type === CallEvents.accept && (
           <View style={styles.manageCall}>
-            {renderIcon(require('./icon/micro.png'), audioEnable ? 'white' : 'red', () => {
-              audio(!audioEnable);
-              setAudioEnable(!audioEnable);
-            })}
+            {renderIcon(
+              require("./icon/micro.png"),
+              audioEnable ? "white" : "red",
+              () => {
+                audio(!audioEnable);
+                setAudioEnable(!audioEnable);
+              }
+            )}
 
-            {renderIcon(require('./icon/video.png'), videoEnabled ? 'white' : 'red', () => {
-              video(!videoEnabled);
-              setVideoEnable(!videoEnabled);
-            })}
+            {callType === "video" &&
+              renderIcon(
+                require("./icon/video.png"),
+                videoEnabled ? "white" : "red",
+                () => {
+                  video(!videoEnabled);
+                  setVideoEnable(!videoEnabled);
+                }
+              )}
 
-            {renderIcon(require('./icon/endcall.png'), 'red', () => {
+            {renderIcon(require("./icon/endcall.png"), "red", () => {
               setVisible(false);
               endCall();
             })}
-
           </View>
         )}
       </View>

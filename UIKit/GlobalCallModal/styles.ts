@@ -97,10 +97,10 @@ export const styles = StyleSheet.create({
     borderRadius: 35,
     borderWidth: 2,
     borderColor: 'white',
-    position: 'absolute',
+    // position: 'absolute',
     zIndex: 9,
-    right: 10,
-    top: 10
+    // right: 10,
+    // top: 10
   },
   textTimer2: {
     fontSize: 12
