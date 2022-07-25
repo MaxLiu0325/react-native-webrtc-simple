@@ -64,6 +64,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
           InCallManager.start({ media: "VIDEO_CALL" });
           break;
         case CallEvents.end:
+          InCallManager.stopRingtone();
           InCallManager.stop();
           break;
         default:
