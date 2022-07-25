@@ -44,7 +44,8 @@ export const styles = StyleSheet.create({
     // bottom: 140,
     top: 10,
     backgroundColor: 'white',
-    right: 10,
+    // right: 10,
+    
   },
   myStream: {
     // width: 150,

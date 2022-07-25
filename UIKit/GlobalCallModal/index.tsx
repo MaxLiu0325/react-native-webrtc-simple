@@ -61,7 +61,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
           break;
         case CallEvents.accept:
           InCallManager.stopRingtone();
-          InCallManager.start({ media: "video" });
+          InCallManager.start({ media: "VIDEO_CALL" });
           break;
         case CallEvents.end:
           InCallManager.stop();
@@ -81,7 +81,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
         audio(true);
 
         setTimeout(() => {
-          if (userData.type === "voice") {
+          if (userData.type === "VOICE_CALL") {
             video(false);
             setVideoEnable(false);
           }
@@ -228,7 +228,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
                 />
               </View>
             )}
-            {stream && callType === "video" && (
+            {stream && callType === "VIDEO_CALL" && (
               <View style={styles.boxMyStream}>
                 <RTCView
                   mirror={cameraType === "front" ? true : false}
@@ -245,7 +245,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
                 </TouchableOpacity>
               </View>
             )}
-            {callType === "video" && (
+            {callType === "VIDEO_CALL" && (
               <RTCView
                 mirror={remoteCameraType === "front" ? true : false}
                 streamURL={remoteStream.toURL()}
@@ -286,7 +286,7 @@ const GlobalCallUI = React.forwardRef((props, ref) => {
               }
             )}
 
-            {callType === "video" &&
+            {callType === "VIDEO_CALL" &&
               renderIcon(
                 require("./icon/video.png"),
                 videoEnabled ? "white" : "red",
